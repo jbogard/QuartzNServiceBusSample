@@ -1,19 +1,20 @@
 ﻿using System;
 using NServiceBus;
+using NServiceBus.Installation;
 using Quartz;
 using QuartzNServiceBusSample.Messages;
 
 namespace QuartzNServiceBusSample
 {
-    public class DoSomethingSchedule : ScheduleSetup<DoSomethingJob>
+    public class DoSomethingSchedule : ScheduleSetup<DoSomethingJob> 
     {
         public DoSomethingSchedule(IScheduler scheduler) : base(scheduler)
         {
         }
 
-        protected override Trigger CreateTrigger()
+        protected override TriggerBuilder CreateTrigger()
         {
-            return TriggerUtils.MakeSecondlyTrigger(TriggerName, 5, Int32.MaxValue);
+            return TriggerBuilder.Create().WithCalendarIntervalSchedule(b => b.WithIntervalInSeconds(5));
         }
     }
 
@@ -21,7 +22,7 @@ namespace QuartzNServiceBusSample
     {
         public IBus Bus { get; set; }
 
-        public void Execute(JobExecutionContext context)
+        public void Execute(IJobExecutionContext context)
         {
             Bus.Send(new DoSomething());
         }

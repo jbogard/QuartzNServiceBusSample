@@ -1,9 +1,13 @@
-﻿using NServiceBus;
+﻿using System.Security.Principal;
+using NServiceBus;
+using NServiceBus.Installation;
 using Quartz;
 
 namespace QuartzNServiceBusSample
 {
-    public abstract class ScheduleSetup<TJob> : IWantToRunAtStartup
+    public abstract class ScheduleSetup<TJob> 
+        : IWantToRunAtStartup 
+        where TJob : IJob
     {
         private readonly IScheduler _scheduler;
 
@@ -12,36 +16,26 @@ namespace QuartzNServiceBusSample
             _scheduler = scheduler;
         }
 
-        protected abstract Trigger CreateTrigger();
-
-        protected static string TriggerName
-        {
-            get { return typeof(TJob).Name + "-CronTrigger"; }
-        }
+        protected abstract TriggerBuilder CreateTrigger();
 
         public void Run()
         {
             var typeOfJob = typeof(TJob);
             var jobName = typeOfJob.Name;
+            var jobKey = new JobKey(jobName);
 
-            var trigger = CreateTrigger();
-            trigger.JobName = jobName;
+            var jobDetail = JobBuilder.Create<TJob>().WithIdentity(jobKey).Build();
+            var trigger = CreateTrigger().ForJob(jobDetail).Build();
 
-            if (_scheduler.GetJobDetail(jobName, "DEFAULT") == null)
+            if (_scheduler.GetJobDetail(jobKey) == null)
             {
-
-                // For testing purposes: 
-                //var trigger = TriggerUtils.MakeMinutelyTrigger(5);
-                //trigger.Name = TriggerName;
-                //trigger.StartTimeUtc = DateTimeOffset.UtcNow.AddSeconds(30).DateTime; // give NSB time to start
-
-                var jobDetail = new JobDetail(jobName, typeOfJob);
-
                 _scheduler.ScheduleJob(jobDetail, trigger);
             }
             else
             {
-                _scheduler.RescheduleJob(TriggerName, "DEFAULT", trigger);
+                var triggerName = typeof(TJob).Name + "-CronTrigger";
+
+                _scheduler.RescheduleJob(new TriggerKey(triggerName), trigger);
             }
         }
 

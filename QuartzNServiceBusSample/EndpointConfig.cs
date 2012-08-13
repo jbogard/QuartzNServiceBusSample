@@ -32,6 +32,8 @@ namespace QuartzNServiceBusSample
             configurer.ConfigureComponent<IScheduler>(() =>
             {
                 var factoryx = new StdSchedulerFactory();
+                factoryx.Initialize();
+
                 var scheduler = factoryx.GetScheduler();
                 scheduler.JobFactory = Configure.Instance.Builder.Build<IJobFactory>();
                 return scheduler;

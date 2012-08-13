@@ -14,7 +14,7 @@ namespace QuartzNServiceBusSample
             _container = container;
         }
 
-        public IJob NewJob(TriggerFiredBundle bundle)
+        public IJob NewJob(TriggerFiredBundle bundle, IScheduler scheduler)
         {
             return _container.Build(bundle.JobDetail.JobType) as IJob;
         }
