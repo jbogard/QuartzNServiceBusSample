@@ -1,12 +1,10 @@
-﻿using System.Security.Principal;
-using NServiceBus;
-using NServiceBus.Installation;
+﻿using NServiceBus;
 using Quartz;
 
 namespace QuartzNServiceBusSample
 {
     public abstract class ScheduleSetup<TJob> 
-        : IWantToRunAtStartup 
+        : IWantToRunWhenBusStartsAndStops
         where TJob : IJob
     {
         private readonly IScheduler _scheduler;
@@ -17,8 +15,8 @@ namespace QuartzNServiceBusSample
         }
 
         protected abstract TriggerBuilder CreateTrigger();
-
-        public void Run()
+        
+        public void Start()
         {
             var typeOfJob = typeof(TJob);
             var jobName = typeOfJob.Name;
@@ -38,9 +36,9 @@ namespace QuartzNServiceBusSample
                 _scheduler.RescheduleJob(new TriggerKey(triggerName), trigger);
             }
         }
-
+    
         public void Stop()
         {
         }
-    }
+        }
 }

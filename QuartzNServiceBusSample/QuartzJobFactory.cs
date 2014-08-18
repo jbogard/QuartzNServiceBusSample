@@ -18,5 +18,11 @@ namespace QuartzNServiceBusSample
         {
             return _container.Build(bundle.JobDetail.JobType) as IJob;
         }
+
+
+        public void ReturnJob(IJob job)
+        {
+            return;
+        }
     }
 }
